@@ -55,8 +55,8 @@ MISTRAL_API_KEY=sua_key
 MISTRAL_API_MODEL=mistral-large-latest
 ```
 
-- Para usar Groq, crie uma conta em [https://console.groq.com/keys](https://console.groq.com/keys).
-- Para OpenAI, crie uma chave em [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys).
+- Para usar Groq, crie uma conta e chave em [https://console.groq.com/keys](https://console.groq.com/keys).
+- Para Mistral, crie uma conta e chave em [https://console.mistral.ai/](https://console.mistral.ai/).
 
 ### 4. Suba os containers
 
