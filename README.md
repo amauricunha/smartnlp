@@ -44,7 +44,6 @@ Crie (ou edite) o arquivo `.env` na raiz do projeto (./backend):
 ```
 DATABASE_URL=postgresql://postgres:postgres@db:5432/smartnlp
 UPLOAD_DIR=uploads
-OPENAI_API_KEY=sua_key
 WHISPER_MODEL=base
 WHISPER_API_URL=http://whisper:9000/asr
 GROQ_API_URL=http://groq:8080
