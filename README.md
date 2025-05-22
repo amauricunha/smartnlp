@@ -39,14 +39,20 @@ cd smartnlp
 
 ### 3. Configure o `.env`
 
-Crie (ou edite) o arquivo `.env` na raiz do projeto:
+Crie (ou edite) o arquivo `.env` na raiz do projeto (./backend):
 
 ```
 DATABASE_URL=postgresql://postgres:postgres@db:5432/smartnlp
 UPLOAD_DIR=uploads
-OPENAI_API_KEY=sua-chave-openai
-GROQ_API_KEY=sua-chave-groq
+OPENAI_API_KEY=sua_key
+WHISPER_MODEL=base
 WHISPER_API_URL=http://whisper:9000/asr
+GROQ_API_URL=http://groq:8080
+GROQ_API_KEY=sua_key
+GROQ_API_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
+MISTRAL_API_URL=http://mistral:8080
+MISTRAL_API_KEY=sua_key
+MISTRAL_API_MODEL=mistral-large-latest
 ```
 
 - Para usar Groq, crie uma conta em [https://console.groq.com/keys](https://console.groq.com/keys).
