@@ -6,6 +6,7 @@ def call_llm_groq(transcription, prompt):
     Usa a API Groq para gerar resposta baseada na transcrição.
     """
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+    GROQ_API_MODEL = os.getenv("GROQ_API_MODEL", "llama3-70b-8192")  # Defina o modelo padrão aqui
     if not GROQ_API_KEY:
         return "GROQ_API_KEY não configurada."
     try:
@@ -15,7 +16,7 @@ def call_llm_groq(transcription, prompt):
             "Content-Type": "application/json"
         }
         data = {
-            "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+            "model": GROQ_API_MODEL,
             "messages": [
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": transcription}
@@ -42,6 +43,7 @@ def call_llm_mistral(transcription, prompt):
     Usa a API Mistral para gerar resposta baseada na transcrição.
     """
     MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
+    MISTRAL_API_MODEL = os.getenv("MISTRAL_API_MODEL", "mistral-medium")  # Defina o modelo padrão aqui
     if not MISTRAL_API_KEY:
         return "MISTRAL_API_KEY não configurada."
     try:
@@ -51,7 +53,7 @@ def call_llm_mistral(transcription, prompt):
             "Content-Type": "application/json"
         }
         data = {
-            "model": "mistral-large-latest",
+            "model": MISTRAL_API_MODEL,
             "messages": [
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": transcription}
