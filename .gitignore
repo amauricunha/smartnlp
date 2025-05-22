@@ -172,3 +172,32 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Modelos grandes, arquivos de cache e checkpoints
+cache/
+cache/**/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.onnx
+*.pb
+*.h5
+*.tflite
+*.npz
+*.tar.gz
+*.zip
+
+# Arquivos de audio e uploads de usuários
+uploads/
+uploads/**
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.m4a
+*.opus
+
+# Git LFS pointer files (caso tenha tentado usar LFS)
+*.lfs
