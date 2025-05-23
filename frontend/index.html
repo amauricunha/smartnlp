@@ -2,26 +2,129 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SmartNLP Audio API - Demo</title>
+  <title>SmartHelp Audio & NLP API</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    label { display: block; margin-top: 1em; }
-    button { margin-top: 1em; }
-    #response { margin-top: 2em; white-space: pre-wrap; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 100%;
+      margin: 2em auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      padding: 2em 2em 2em 2em;
+    }
+    h1 {
+      text-align: center;
+      color: #1976d2;
+      margin-bottom: 1.5em;
+      font-size: 2.2em;
+      letter-spacing: 1px;
+    }
+    form label {
+      display: block;
+      margin-top: 1.2em;
+      font-weight: 500;
+      color: #333;
+    }
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 0.7em;
+      margin-top: 0.3em;
+      border: 1px solid #cfd8dc;
+      border-radius: 8px;
+      font-size: 1em;
+      background: #f9fbfd;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1.5px solid #1976d2;
+      outline: none;
+    }
+    .btn-row {
+      display: flex;
+      gap: 1em;
+      align-items: stretch;
+      margin-top: 1.2em;
+    }
+    .main-btn {
+      flex: 1;
+      min-width: 180px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15em;
+      margin-top: 0;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.07);
+      text-align: center;
+      outline: none;
+      padding: 0;
+    }
+    .btn-blue {
+      background: #1976d2;
+      color: #fff;
+    }
+    .btn-blue:hover:not([disabled]), .btn-blue:focus:not([disabled]) {
+      background: #1256a3;
+      color: #fff;
+    }
+    .btn-green {
+      background: #43a047;
+      color: #fff;
+    }
+    .btn-green:hover:not([disabled]), .btn-green:focus:not([disabled]) {
+      background: #2e7031;
+      color: #fff;
+    }
+    .main-btn[disabled], .btn-green[disabled] {
+      background: #e0e0e0 !important;
+      color: #bdbdbd !important;
+      cursor: not-allowed;
+      border: none;
+    }
+    .file-label {
+      flex: 1;
+      margin: 0;
+      cursor: pointer;
+      min-width: 180px;
+      height: 54px;
+      display: flex;
+      align-items: stretch;
+    }
+    #recordStatus {
+      margin-left: 1em;
+      font-size: 0.98em;
+      color: #1976d2;
+      font-weight: 500;
+    }
     #spinner {
       display: none;
-      margin-top: 1em;
+      margin: 2em auto 1em auto;
+      text-align: center;
     }
     .lds-dual-ring {
       display: inline-block;
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
+      vertical-align: middle;
     }
     .lds-dual-ring:after {
       content: " ";
       display: block;
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       margin: 4px;
       border-radius: 50%;
       border: 4px solid #1976d2;
@@ -32,51 +135,194 @@
       0% { transform: rotate(0deg);}
       100% { transform: rotate(360deg);}
     }
-    table { margin-top:2em; border-collapse: collapse; width:100%; }
-    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
-    th { background: #f5f5f5; }
+    audio {
+      margin-top: 1em;
+      width: 100%;
+      border-radius: 8px;
+      background: #f9fbfd;
+    }
+    .table-container {
+      margin-top: 2.5em;
+      border-radius: 12px;
+      background: #f9fbfd;
+      box-shadow: 0 1px 8px rgba(25, 118, 210, 0.04);
+      padding-bottom: 1em;
+    }
+    .scroll-table {
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid #e3eaf2;
+      background: #fff;
+      position: relative;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1em;
+      min-width: 600px;
+      table-layout: fixed;
+    }
+    th.col-id, td.col-id    { width: 48px;   min-width: 40px;   max-width: 60px;   }
+    th.col-status, td.col-status { width: 70px;  min-width: 60px;   max-width: 90px;   }
+    th.col-prompt, td.col-prompt { width: 180px; min-width: 120px;  max-width: 260px;  }
+    th.col-trans, td.col-trans   { width: 180px; min-width: 120px;  max-width: 260px;  }
+    th.col-groq, td.col-groq     { width: 320px; min-width: 180px;  }
+    th.col-mistral, td.col-mistral { width: 320px; min-width: 180px; }
+    th, td {
+      border: 1px solid #e3eaf2;
+      padding: 0.7em 0.6em;
+      text-align: left;
+      word-break: break-word;
+      vertical-align: top;
+    }
+    th {
+      background: #e3eaf2;
+      color: #1976d2;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tbody tr:nth-child(even) {
+      background: #f4f7fa;
+    }
+    #paginationControls {
+      display: flex;
+      gap: 0.5em;
+      align-items: center;
+      font-size: 1.05em;
+      margin: 0.5em 0;
+    }
+    #paginationControls button {
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4em 1.1em;
+      font-size: 1em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #paginationControls button[disabled] {
+      background: #e0e0e0 !important;
+      color: #bdbdbd !important;
+      cursor: not-allowed;
+    }
+    #paginationControls span {
+      font-weight: 500;
+      color: #1976d2;
+      min-width: 90px;
+      text-align: center;
+    }
+    @media (max-width: 800px) {
+      .container { padding: 1em; }
+      table { font-size: 0.95em; min-width: 400px; }
+      .scroll-table { max-height: 250px; }
+    }
   </style>
 </head>
 <body>
-  <h1>SmartNLP Audio API - Avaliação LLMs</h1>
-  <form id="audioForm">
-    <label>
-      ID:
-      <input type="text" id="id" name="id" value="1" required>
-    </label>
-    <label>
-      Descrição da Prática:
-      <input type="text" id="pratica_descricao" name="pratica_descricao" placeholder="Descreva a prática" required>
-    </label>
-    <label>
-      Situação de Aprendizagem:
-      <input type="text" id="sa_descricao" name="sa_descricao" placeholder="Descreva a situação de aprendizagem" required>
-    </label>
-    <label>
-      <button type="button" id="recordBtn">Gravar Áudio</button>
-      <span id="recordStatus"></span>
-    </label>
-    <label>
-      Ou envie um arquivo de áudio:
-      <input type="file" id="audioFileInput" accept="audio/*">
-    </label>
-    <audio id="audioPlayback" controls style="display:none;"></audio>
-    <button type="submit" id="sendBtn" disabled>Enviar</button>
-  </form>
-  <div id="spinner"><div class="lds-dual-ring"></div> Processando...</div>
-  <table id="resultsTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Status</th>
-        <th>Transcrição</th>
-        <th>Groq</th>
-        <th>Mistral</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+  <div class="container">
+    <h1>Protótipo SmartHelp Audio & LLMs API</h1>
+    
+    <form id="audioForm" autocomplete="off">
+      <label for="id">
+        ID:
+        <input type="text" id="id" name="id" value="1" required>
+      </label>
+      <label for="area_especialista">
+        Área do Especialista:
+        <input type="text" id="area_especialista" name="area_especialista" placeholder="Área de Especialista" required>
+      </label>
+      <label for="semestre_aluno">
+        Semestre do Aluno:
+        <input type="text" id="semestre_aluno" name="semestre_aluno" placeholder="Semestre do Aluno" required>
+      </label>
+      <label for="sa_descricao">
+        Situação de Aprendizagem:
+        <input type="text" id="sa_descricao" name="sa_descricao" placeholder="Descreva a situação de aprendizagem" required>
+      </label>
+      <label for="etapa_descricao">
+        Etapa:
+        <input type="text" id="etapa_descricao" name="etapa_descricao" placeholder="Descreva a etapa da SA" required>
+      </label>
+      <label for="pratica_descricao">
+        Descrição da Prática:
+        <input type="text" id="pratica_descricao" name="pratica_descricao" placeholder="Descreva a prática que está sendo realizada" required>
+      </label>
+      <label for="parametros_descricao">
+        Parâmetros da Prática:
+        <input type="text" id="parametros_descricao" name="parametros_descricao" placeholder="Digite todos os parâmetros da prática" required>
+      </label>
+      <div class="btn-row">
+        <button type="button" id="recordBtn" class="main-btn btn-blue">
+          <span style="display:flex;align-items:center;gap:0.5em;width:100%;justify-content:center;">
+            <span style="font-size:1.3em;">🎤</span>
+            <span>Gravar Áudio</span>
+          </span>
+        </button>
+        <label for="audioFileInput" class="file-label">
+          <input type="file" id="audioFileInput" accept="audio/*" style="display:none;">
+          <span id="chooseFileBtn" class="main-btn btn-blue">
+            <span style="display:flex;align-items:center;gap:0.5em;width:100%;justify-content:center;">
+              <span style="font-size:1.3em;">📁</span>
+              <span>Escolher Arquivo</span>
+            </span>
+          </span>
+        </label>
+        <span id="recordStatus" style="flex:2; align-self:center;"></span>
+      </div>
+      <audio id="audioPlayback" controls style="display:none;"></audio>
+      <button type="submit" id="sendBtn" class="main-btn btn-green" disabled>Enviar</button>
+    </form>
+    <h2 style="font-size:1.2em; color:#1976d2; text-align:center; margin-bottom:0.5em;">
+      Avaliação da Explicação do Aluno por LLMs
+    </h2>
+    <div id="llm-audio-controls" style="display:flex; flex-direction:column; align-items:center; gap:1em; margin-bottom:2em;">
+      <button id="btnSwitchLLM" class="main-btn btn-blue" type="button" style="width:80%; font-size:1.3em; padding:1em;">🔊 Ouvir Groq</button>
+      <div style="display:flex; justify-content:center; align-items:center; gap:1em; width:100%; max-width:600px;">
+        <button id="btnPlayPause" class="main-btn btn-blue" type="button" disabled style="flex:1; font-size:1.1em;">▶️ Play</button>
+        <button id="btnStop" class="main-btn btn-blue" type="button" disabled style="flex:1; font-size:1.1em;">⏹️ Parar</button>
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <label for="speedControl" style="font-size:0.95em;">Velocidade:</label>
+          <input id="speedControl" type="range" min="0.5" max="3" step="0.05" value="1" style="width:100px;">
+        </div>
+      </div>
+    </div>
+    <div id="spinner"><div class="lds-dual-ring"></div> <span style="font-size:1.1em;">Processando...</span></div>
+    <div class="table-container">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5em;">
+        <div>
+          <label for="pageSizeSelect" style="font-weight:500;color:#1976d2;">Registros por página:</label>
+          <select id="pageSizeSelect" style="padding:0.3em 0.7em;border-radius:6px;border:1px solid #cfd8dc;font-size:1em;">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div id="paginationControls"></div>
+      </div>
+      <div class="scroll-table">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-status">Status</th>
+              <th class="col-prompt">Prompt</th>
+              <th class="col-trans">Transcrição</th>
+              <th class="col-groq">Groq</th>
+              <th class="col-mistral">Mistral</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>

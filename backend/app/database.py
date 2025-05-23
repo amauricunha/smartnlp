@@ -39,3 +39,12 @@ def create_or_update_audio_record(id, prompt, audio_path, transcription, llm_gro
         db.commit()
     finally:
         db.close()
+
+# Exporta modelo e sessão para uso externo
+__all__ = [
+    "ALLOWED_EXTENSIONS",
+    "UPLOAD_DIR",
+    "create_or_update_audio_record",
+    "AudioRecord",
+    "SessionLocal",
+]
