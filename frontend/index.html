@@ -11,18 +11,19 @@
   </style>
 </head>
 <body>
-  <h1>SmartNLP Audio API - Demo</h1>
+  <h1>SmartNLP Audio API - Avaliação LLMs</h1>
   <form id="audioForm">
     <label>
       ID:
       <input type="text" id="id" name="id" value="1" required>
     </label>
     <label>
-      Modelo LLM:
-      <select id="llm" name="llm">
-        <option value="groq" selected>Groq</option>
-        <option value="mistral">Mistral</option>
-      </select>
+      Descrição da Prática:
+      <input type="text" id="pratica_descricao" name="pratica_descricao" placeholder="Descreva a prática" required>
+    </label>
+    <label>
+      Situação de Aprendizagem:
+      <input type="text" id="sa_descricao" name="sa_descricao" placeholder="Descreva a situação de aprendizagem" required>
     </label>
     <label>
       <button type="button" id="recordBtn">Gravar Áudio</button>

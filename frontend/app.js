@@ -56,11 +56,12 @@ form.onsubmit = async function(e) {
 
   const formData = new FormData();
   formData.append("id", document.getElementById('id').value || "1");
-  formData.append("llm", document.getElementById('llm').value || "groq");
+  formData.append("pratica_descricao", document.getElementById('pratica_descricao').value || "");
+  formData.append("sa_descricao", document.getElementById('sa_descricao').value || "");
   formData.append("file", audioBlob, "audio.webm");
 
   try {
-    const res = await fetch("http://localhost:8000/upload/", {
+    const res = await fetch("http://localhost:8000/avaliacao/", {
       method: "POST",
       body: formData
     });

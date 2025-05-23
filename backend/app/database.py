@@ -15,23 +15,25 @@ class AudioRecord(Base):
     __tablename__ = "audio_records"
     id = Column(Integer, primary_key=True, index=True)
     audio_path = Column(String, nullable=False)
+    prompt = Column(Text)
     transcription = Column(Text)
-    llm_response = Column(Text)
-    llm = Column(String, nullable=False)  # Novo campo
+    llm_groq = Column(Text)
+    llm_mistral = Column(Text)  
 
 Base.metadata.create_all(bind=engine)
 
 ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm"}
 
-def create_or_update_audio_record(id, audio_path, transcription, llm_response, llm):
+def create_or_update_audio_record(id, prompt, audio_path, transcription, llm_groq, llm_mistral):
     db = SessionLocal()
     try:
         audio_record = AudioRecord(
             id=id,
             audio_path=audio_path,
+            prompt=prompt,
             transcription=transcription,
-            llm_response=llm_response,
-            llm=llm
+            llm_groq=llm_groq,
+            llm_mistral=llm_mistral
         )
         db.merge(audio_record)
         db.commit()

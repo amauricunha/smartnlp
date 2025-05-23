@@ -36,25 +36,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def clean_llm_response(text):
-    # Remove "Avaliação:" do início (com ou sem acento, com ou sem espaço após)
-    text = re.sub(r"^(Avalia[cç][aã]o:?\s*)", "", text, flags=re.IGNORECASE)
-    # Normaliza caracteres especiais (opcional: remova se quiser manter acentos)
-    # text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
-    return text.strip()
-
 @app.get("/health", summary="Healthcheck")
 def healthcheck():
     return {"status": "ok"}
 
-@app.post("/upload/", summary="Upload de áudio e processamento")
-async def upload_audio(
+@app.post("/avaliacao/", summary="Upload de áudio e avaliação das LLMs Groq e Mistral")
+async def avaliacao(
     id: int = Form(...),
-    file: UploadFile = File(...),
-    llm: str = Form("groq")
+    pratica_descricao: str = Form(...),
+    sa_descricao: str = Form(...),
+    file: UploadFile = File(...)
 ):
     """
-    Recebe um arquivo de áudio, transcreve, envia para LLM (groq ou mistral) e retorna resposta.
+    Recebe um arquivo de áudio, a descrição da prática e a situação de aprendizagem, transcreve o audio, envia para a LLMs Groq e Mistral e retorna resposta, salvando em banco de dados.
     """
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -78,27 +72,27 @@ async def upload_audio(
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write(transcription)
 
-    prompt = "Você é um especialista em Usinagem e vai avaliar a transcrição do audio do aluno que explica o que está fazendo em um torno mecanico. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção."
+    prompt = ("Você é um especialista em Usinagem e vai avaliar a transcrição do audio do aluno que explica o que está fazendo em um torno mecanico. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção. Considere que o aluno está em um ambiente de aprendizagem e não tem experiência. Também considere que o aluno pode ter dificuldades de comunicação e pode não usar a terminologia correta. Seja gentil e encorajador, mas também honesto e direto. Não use jargões técnicos ou termos complexos. Responda em português. Aluno está nessa pratica: " + pratica_descricao + ". Desta Situação de Aprendizagem: " + sa_descricao)
 
-    if llm == "mistral":
-        llm_response = call_llm_mistral(transcription, prompt)
-    else:
-        llm = "groq"
-        llm_response = call_llm_groq(transcription, prompt)
+    llm_response_mistral = call_llm_mistral(transcription, prompt)
+    llm_response_groq = call_llm_groq(transcription, prompt)
 
-    if llm_response.startswith("Erro"):
-        logging.error(llm_response)
-        raise HTTPException(status_code=500, detail=llm_response)
+    if llm_response_mistral.startswith("Erro"):
+        logging.error(llm_response_mistral)
+        raise HTTPException(status_code=500, detail=llm_response_mistral)
 
-    llm_response_clean = clean_llm_response(llm_response)
+    if llm_response_groq.startswith("Erro"):
+        logging.error(llm_response_groq)
+        raise HTTPException(status_code=500, detail=llm_response_groq)
 
     try:
         create_or_update_audio_record(
             id=id,
-            audio_path=audio_path,
+            audio_path=audio_path,            
+            prompt=prompt,
             transcription=transcription,
-            llm_response=llm_response_clean,
-            llm=llm
+            llm_groq=llm_response_groq,
+            llm_mistral=llm_response_mistral
         )
     except Exception as e:
         logging.exception("Erro ao salvar no banco de dados")
@@ -108,16 +102,17 @@ async def upload_audio(
         content={
             "id": id,
             "audio_path": audio_path,
+            "prompt": prompt,
             "transcription": transcription,
-            "llm_response": llm_response_clean,
-            "llm": llm
+            "llm_response_groq": llm_response_groq,
+            "llm_response_mistral": llm_response_mistral
         }
     )
 
 @app.post("/transcribe/", summary="Transcreve apenas o áudio")
 async def transcribe_audio_endpoint(file: UploadFile = File(...)):
     """
-    Recebe um arquivo de áudio e retorna apenas a transcrição.
+    Recebe um arquivo de áudio, salva no servidor e retorna a transcrição.
     """
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -147,38 +142,44 @@ async def transcribe_audio_endpoint(file: UploadFile = File(...)):
         }
     )
 
-@app.post("/llm-groq/", summary="Recebe texto e retorna resposta da LLM")
-async def llm_endpoint(transcription: str = Form(...)):
+@app.post("/llm-groq/", summary="Recebe Descrição da SA, Descrição da Pratica e Transcriçaõ do Audio do Aluno em texto e retorna resposta da LLM Groq")
+async def llm_endpoint(
+    sa_descricao: str = Form(...),
+    pratica_descricao: str = Form(...),
+    transcription: str = Form(...)):
     """
-    Recebe uma transcrição e retorna a resposta da LLM.
+    Recebe uma transcrição de audio de um aluno de usinagem e retorna a resposta da LLM Groq, considerando a prática e a situação de aprendizagem informadas.
     """
-    prompt = "Você é um especialista em Usinagem e vai avaliar a transcrição do audio do aluno que explica o que está fazendo. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção."
+    prompt = ("Você é um especialista em Usinagem e vai avaliar a transcrição do audio do aluno que explica o que está fazendo. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção. Considere que o aluno está em um ambiente de aprendizagem e não tem experiência. Também considere que o aluno pode ter dificuldades de comunicação e pode não usar a terminologia correta. Seja gentil e encorajador, mas também honesto e direto. Não use jargões técnicos ou termos complexos. Responda em português. Aluno está nessa prática: " + pratica_descricao + ". Desta Situação de Aprendizagem: " + sa_descricao)
     llm_response = call_llm_groq(transcription, prompt)
     if llm_response.startswith("Erro"):
         logging.error(llm_response)
         raise HTTPException(status_code=500, detail=llm_response)
-    llm_response_clean = clean_llm_response(llm_response)
     return JSONResponse(
         content={
-            "llm_response": llm_response_clean,
+            "prompt": prompt,
+            "llm_response": llm_response,
             "llm": "groq"
         }
     )
 
-@app.post("/llm-mistral/", summary="Recebe texto e retorna resposta da LLM Mistral")
-async def llm_mistral_endpoint(transcription: str = Form(...)):
+@app.post("/llm-mistral/", summary="Recebe Descrição da SA, Descrição da Pratica e Transcriçaõ do Audio do Aluno em texto e retorna resposta da LLM Mistral")
+async def llm_mistral_endpoint(
+    sa_descricao: str = Form(...),
+    pratica_descricao: str = Form(...),
+    transcription: str = Form(...)):
     """
-    Recebe uma transcrição e retorna a resposta da LLM Mistral.
+    Recebe uma transcrição de audio de um aluno de usinagem e retorna a resposta da LLM Mistral, considerando a prática e a situação de aprendizagem informadas.
     """
-    prompt = "Você é um especialista em Usinagem e vai avaliar a transcrição do audio do aluno que explica o que está fazendo. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção."
+    prompt = ("Você é um especialista em Usinagem e vai avaliar a transcrição do audio do aluno que explica o que está fazendo. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção. Considere que o aluno está em um ambiente de aprendizagem e não tem experiência. Também considere que o aluno pode ter dificuldades de comunicação e pode não usar a terminologia correta. Seja gentil e encorajador, mas também honesto e direto. Não use jargões técnicos ou termos complexos. Responda em português. Aluno está nessa prática: " + pratica_descricao + ". Desta Situação de Aprendizagem: " + sa_descricao)
     llm_response = call_llm_mistral(transcription, prompt)
     if llm_response.startswith("Erro"):
         logging.error(llm_response)
         raise HTTPException(status_code=500, detail=llm_response)
-    llm_response_clean = clean_llm_response(llm_response)
     return JSONResponse(
         content={
-            "llm_response": llm_response_clean,
+            "prompt": prompt,
+            "llm_response": llm_response,
             "llm": "mistral"
         }
     )
