@@ -194,7 +194,8 @@ cython_debug/
 *.ogg
 *.m4a
 *.opus
-*.txt
+uploads/*.txt
+backend/app/uploads/*.txt
 *.webm
 *.mp4
 

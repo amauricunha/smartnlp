@@ -7,8 +7,6 @@ import os
 import logging
 from uuid import uuid4
 from dotenv import load_dotenv
-import unicodedata
-import re
 
 # Importações dos módulos separados
 from database import (
