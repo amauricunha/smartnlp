@@ -1,5 +1,16 @@
 version: "3.9"
 services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: smartnlp
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
   api:
     build:
       context: .
@@ -9,8 +20,6 @@ services:
       - whisper
     ports:
       - "8000:8000"
-    networks:
-      - influx_default
     volumes:
       - ./uploads:/app/uploads
       - ./backend/.env:/app/.env
@@ -26,8 +35,6 @@ services:
       - ASR_MODEL_PATH=/root/.cache  # Garante uso do cache persistente
     ports:
       - "9000:9000"
-    networks:
-      - influx_default
     volumes:
       - ./uploads:/data
       - ./cache:/root/.cache
@@ -39,7 +46,3 @@ services:
       - ./frontend:/usr/share/nginx/html:ro
 volumes:
   pgdata:
-
-networks:
-  influx_default:
-    external: true
