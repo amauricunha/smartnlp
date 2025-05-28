@@ -5,7 +5,6 @@ services:
       context: .
       dockerfile: ./backend/Dockerfile
     depends_on:
-      - db
       - whisper
     ports:
       - "8000:8000"
@@ -16,7 +15,7 @@ services:
       - ./backend/.env:/app/.env
       - ./backend/app:/app
     # Aumenta o timeout do wait-for-it para garantir que whisper suba antes da API
-    command: ["/bin/bash", "-c", "./wait-for-it.sh db:5432 --timeout=60 --strict -- ./wait-for-it.sh whisper:9000 --timeout=120 --strict -- uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
+    command: ["/bin/bash", "-c", "./wait-for-it.sh whisper:9000 --timeout=120 --strict -- uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
     environment:
