@@ -13,7 +13,6 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./backend/app:/app
-      - ./backend/.env:/app/.env
     # Aumenta o timeout do wait-for-it para garantir que whisper suba antes da API
     command: ["/bin/bash", "-c", "./wait-for-it.sh whisper:9000 --timeout=120 --strict -- uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
   whisper:
