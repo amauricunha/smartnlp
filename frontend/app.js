@@ -386,3 +386,47 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnStop').disabled = true;
   fetchAndRenderRecords();
 });
+
+// Adiciona evento para puxar Groq/Mistral para o controle de áudio ao clicar na célula correspondente
+resultsTable.parentElement.addEventListener('click', function (event) {
+  // ...lógica já existente para col-trans pode ficar aqui se desejar...
+
+  // Groq
+  const groqCell = event.target.closest('td.col-groq');
+  if (groqCell) {
+    const text = groqCell.textContent.trim();
+    if (text) {
+      lastGroqText = text;
+      currentLLM = "groq";
+      document.getElementById('btnSwitchLLM').textContent = "🔊 Ouvir Groq";
+      document.getElementById('btnPlayPause').disabled = false;
+      document.getElementById('btnStop').disabled = false;
+      document.getElementById('btnSwitchLLM').disabled = false;
+      document.getElementById('speedControl').disabled = false;
+      document.getElementById('btnPlayPause').textContent = "⏸️ Pause";
+      // Dispara o play automático
+      if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+      document.getElementById('btnPlayPause').click();
+    }
+    return;
+  }
+
+  // Mistral
+  const mistralCell = event.target.closest('td.col-mistral');
+  if (mistralCell) {
+    const text = mistralCell.textContent.trim();
+    if (text) {
+      lastMistralText = text;
+      currentLLM = "mistral";
+      document.getElementById('btnSwitchLLM').textContent = "🔊 Ouvir Mistral";
+      document.getElementById('btnPlayPause').disabled = false;
+      document.getElementById('btnStop').disabled = false;
+      document.getElementById('btnSwitchLLM').disabled = false;
+      document.getElementById('speedControl').disabled = false;
+      document.getElementById('btnPlayPause').textContent = "⏸️ Pause";
+      if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+      document.getElementById('btnPlayPause').click();
+    }
+    return;
+  }
+});
