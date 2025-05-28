@@ -7,14 +7,14 @@ services:
     depends_on:
       - whisper
     ports:
-      - "8100:8000"
+      - "8100:8100"
     networks:
       - influx_default
     volumes:
       - ./uploads:/app/uploads
       - ./backend/app:/app
     # Aumenta o timeout do wait-for-it para garantir que whisper suba antes da API
-    command: ["/bin/bash", "-c", "./wait-for-it.sh whisper:9000 --timeout=120 --strict -- uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
+    command: ["/bin/bash", "-c", "./wait-for-it.sh whisper:9000 --timeout=120 --strict -- uvicorn main:app --host 0.0.0.0 --port 8100 --reload"]
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
     environment:
