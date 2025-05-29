@@ -168,7 +168,11 @@ async function fetchAndRenderRecords() {
     }
     createPaginationControls();
   } catch (e) {
-    resultsTable.innerHTML = `<tr><td colspan="6" style="color:red;">Erro ao carregar registros</td></tr>`;
+    console.error("Erro detalhado ao carregar registros:", e);
+    console.error("Stack trace:", e.stack);
+    console.error("Message:", e.message);
+    console.error("Name:", e.name);
+    resultsTable.innerHTML = `<tr><td colspan="6" style="color:red;">Erro ao carregar registros: ${e.message}<br/>Detalhes no console do navegador</td></tr>`;
   } finally {
     spinner.style.display = "none";
   }
