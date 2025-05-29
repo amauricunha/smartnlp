@@ -143,9 +143,19 @@ function createPaginationControls() {
 async function fetchAudioRecords(page = 1, size = 10) {
   const skip = (page - 1) * size;
   const url = `/api/audio_records/?skip=${skip}&limit=${size}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Erro ao buscar registros");
-  return await res.json();
+  console.log("Tentando fazer requisição para:", url);
+  
+  try {
+    const res = await fetch(url);
+    console.log("Resposta recebida:", res.status, res.statusText);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    console.log("Dados recebidos:", data);
+    return data;
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    throw error;
+  }
 }
 
 // Renderiza tabela
