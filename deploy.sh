@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Gera SSL se necessário
+echo "Verificando certificado SSL..."
+bash ./generate-ssl.sh
+
 # Parar os containers antigos
 echo "Parando containers antigos..."
 docker-compose down
