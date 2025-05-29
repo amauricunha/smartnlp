@@ -149,13 +149,15 @@ function setupGlobalSpeechControls() {
         };
 
         utterance.onerror = (event) => {
-          // Mostra o erro completo no alerta
+          // Mostra o erro completo no alerta, incluindo propriedades do evento
           let msg = "Erro na síntese de voz: " + event.error;
           if (event.message) msg += "\n" + event.message;
-          if (typeof event !== "string") {
-            try {
-              msg += "\n" + JSON.stringify(event, null, 2);
-            } catch {}
+          // Mostra todas as propriedades do evento para debug
+          msg += "\n\nDetalhes do evento:\n";
+          for (const key in event) {
+            if (Object.prototype.hasOwnProperty.call(event, key)) {
+              msg += `${key}: ${JSON.stringify(event[key])}\n`;
+            }
           }
           // Fallback para synthesis-failed ou erro de voz
           if (event.error === "synthesis-failed" || event.error === "not-allowed" || event.error === "audio-busy") {
