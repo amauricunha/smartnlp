@@ -142,7 +142,7 @@ function createPaginationControls() {
 // Busca registros do backend
 async function fetchAudioRecords(page = 1, size = 10) {
   const skip = (page - 1) * size;
-  const url = `http://localhost:8000/audio_records/?skip=${skip}&limit=${size}`;
+  const url = `/api/audio_records/?skip=${skip}&limit=${size}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("Erro ao buscar registros");
   return await res.json();
@@ -262,7 +262,7 @@ form.onsubmit = async function (e) {
   document.getElementById('btnStop').disabled = true;
   document.getElementById('speedControl').disabled = true;
 
-  fetch("http://localhost:8000/avaliacao/", {
+  fetch("/api/avaliacao/", {
     method: "POST",
     body: formData
   })
