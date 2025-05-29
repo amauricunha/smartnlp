@@ -253,6 +253,9 @@ def list_audio_records(skip: int = Query(0, ge=0), limit: int = Query(10, ge=1, 
     Retorna registros da tabela audio_records, ordenados do mais recente para o mais antigo.
     """
     db = SessionLocal()
+    print(f"Conectando ao banco de dados para consulta: {db.bind.url}")
+    if not db.bind.url:
+        raise HTTPException(status_code=500, detail="Banco de dados não configurado corretamente.")
     try:
         total = db.query(AudioRecord).count()
         records = (
