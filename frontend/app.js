@@ -63,6 +63,24 @@ function setupGlobalSpeechControls() {
     return;
   }
 
+  // Testa se o SpeechSynthesis realmente funciona (Android pode não funcionar mesmo existindo)
+  let synthesisWorks = true;
+  function testSpeechSynthesis() {
+    try {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) {
+        synthesisWorks = false;
+        playPauseBtn.textContent = "❌ Não suportado";
+        addCopyTextButton();
+      }
+    } catch (e) {
+      synthesisWorks = false;
+      playPauseBtn.textContent = "❌ Não suportado";
+      addCopyTextButton();
+    }
+  }
+  setTimeout(testSpeechSynthesis, 500);
+
   switchLLMBtn.onclick = function () {
     currentLLM = currentLLM === "groq" ? "mistral" : "groq";
     switchLLMBtn.textContent = currentLLM === "groq" ? "🔊 Ouvir Groq" : "🔊 Ouvir Mistral";
@@ -131,9 +149,22 @@ function setupGlobalSpeechControls() {
         };
 
         utterance.onerror = (event) => {
-          // Só mostra alerta se não for erro 'interrupted'
-          if (event.error !== "interrupted") {
-            alert("Erro na síntese de voz: " + event.error);
+          // Mostra o erro completo no alerta
+          let msg = "Erro na síntese de voz: " + event.error;
+          if (event.message) msg += "\n" + event.message;
+          if (typeof event !== "string") {
+            try {
+              msg += "\n" + JSON.stringify(event, null, 2);
+            } catch {}
+          }
+          // Fallback para synthesis-failed ou erro de voz
+          if (event.error === "synthesis-failed" || event.error === "not-allowed" || event.error === "audio-busy") {
+            synthesisWorks = false;
+            playPauseBtn.textContent = "❌ Não suportado";
+            addCopyTextButton();
+            alert("Leitura automática não suportada neste dispositivo.\n\n" + msg + "\nUse o botão de copiar texto e cole em um app leitor de texto.");
+          } else if (event.error !== "interrupted") {
+            alert(msg);
           }
           playPauseBtn.textContent = "▶️ Play";
         };
@@ -520,3 +551,21 @@ resultsTable.parentElement.addEventListener('click', function (event) {
     return;
   }
 });
+
+function addCopyTextButton() {
+  if (document.getElementById('btnCopyText')) return;
+  const btn = document.createElement('button');
+  btn.id = 'btnCopyText';
+  btn.className = 'main-btn btn-blue';
+  btn.type = 'button';
+  btn.style = 'width:80%;font-size:1.1em;margin-top:0.5em;';
+  btn.textContent = '📋 Copiar texto para leitura manual';
+  btn.onclick = function () {
+    let text = cleanTextForSpeech(currentLLM === "groq" ? lastGroqText : lastMistralText);
+    if (!text) text = "Nenhum texto disponível.";
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Texto copiado para a área de transferência. Cole em um app leitor de texto ou leia manualmente.");
+    });
+  };
+  document.getElementById('llm-audio-controls').appendChild(btn);
+}
