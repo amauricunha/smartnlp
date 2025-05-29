@@ -179,10 +179,13 @@ async function fetchAndRenderRecords() {
     createPaginationControls();
   } catch (e) {
     console.error("Erro detalhado ao carregar registros:", e);
-    console.error("Stack trace:", e.stack);
-    console.error("Message:", e.message);
-    console.error("Name:", e.name);
-    resultsTable.innerHTML = `<tr><td colspan="6" style="color:red;">Erro ao carregar registros: ${e.message}<br/>Detalhes no console do navegador</td></tr>`;
+    const errorDetails = `
+      <strong>Erro:</strong> ${e.message}<br/>
+      <strong>Tipo:</strong> ${e.name}<br/>
+      <strong>Stack:</strong> ${e.stack || 'N/A'}<br/>
+      <strong>URL tentativa:</strong> /api/audio_records/?skip=${(currentPage - 1) * pageSize}&limit=${pageSize}
+    `;
+    resultsTable.innerHTML = `<tr><td colspan="6" style="color:red; padding: 10px; white-space: pre-line;">${errorDetails}</td></tr>`;
   } finally {
     spinner.style.display = "none";
   }
