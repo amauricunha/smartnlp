@@ -3,9 +3,15 @@ from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/smartnlp")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://airflow-smartlab:airflow-smartlab@postgres_smartlab:5432/monitoramento40")
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+print(f"Conectando ao banco de dados: {DATABASE_URL}")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL não configurada. Verifique as variáveis de ambiente.")
+print(f"Diretório de upload: {UPLOAD_DIR}")
+if not UPLOAD_DIR:
+    raise ValueError("UPLOAD_DIR não configurada. Verifique as variáveis de ambiente.")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
