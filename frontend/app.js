@@ -79,7 +79,7 @@ function setupGlobalSpeechControls() {
       addCopyTextButton();
     }
   }
-  setTimeout(testSpeechSynthesis, 500);
+  setTimeout(testSpeechSynthesis, 1500);
 
   switchLLMBtn.onclick = function () {
     currentLLM = currentLLM === "groq" ? "mistral" : "groq";
