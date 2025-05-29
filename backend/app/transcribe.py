@@ -1,6 +1,8 @@
 import os
 import requests
 import logging
+import subprocess
+import tempfile
 
 WHISPER_API_URL = os.getenv("WHISPER_API_URL", "http://whisper:9000/asr")
 
@@ -58,3 +60,23 @@ def transcribe_audio(filepath):
             else:
                 logging.error(f"Erro na transcrição após {max_retries} tentativas: {str(e)}")
                 return f"Erro na transcrição: {str(e)}"
+    
+    # Verifica se o arquivo precisa de conversão
+    _, ext = os.path.splitext(filepath)
+    if ext.lower() in ['.m4a', '.aac']:
+        # Converte para WAV usando ffmpeg
+        try:
+            converted_path = filepath.replace(ext, '.wav')
+            subprocess.run([
+                'ffmpeg', '-i', filepath, 
+                '-acodec', 'pcm_s16le', 
+                '-ar', '16000', 
+                converted_path, '-y'
+            ], check=True, capture_output=True)
+            filepath = converted_path
+            logging.info(f"Arquivo convertido para: {converted_path}")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Erro na conversão do áudio: {e}")
+            return f"Erro na conversão do áudio: {e}"
+        except FileNotFoundError:
+            logging.error("FFmpeg não encontrado. Tentando sem conversão...")

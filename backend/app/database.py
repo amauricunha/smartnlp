@@ -28,7 +28,7 @@ class AudioRecord(Base):
 
 Base.metadata.create_all(bind=engine)
 
-ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm"}
+ALLOWED_EXTENSIONS = [".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aac", ".webm"]
 
 def create_or_update_audio_record(id, prompt, audio_path, transcription, llm_groq, llm_mistral):
     db = SessionLocal()
