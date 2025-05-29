@@ -1,9 +1,12 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://airflow-smartlab:airflow-smartlab@postgres_smartlab:5432/monitoramento40")
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 print(f"Conectando ao banco de dados: {DATABASE_URL}")

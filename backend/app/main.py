@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +7,6 @@ import shutil
 import os
 import logging
 from uuid import uuid4
-from dotenv import load_dotenv
 
 # Importações dos módulos separados
 from database import (
@@ -19,7 +19,6 @@ from database import (
 from transcribe import transcribe_audio
 from llm import call_llm_groq, call_llm_mistral
 
-# Carrega variáveis do .env
 load_dotenv()
 
 app = FastAPI(

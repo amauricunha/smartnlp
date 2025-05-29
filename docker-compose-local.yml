@@ -11,20 +11,21 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - influx_default
   api:
     build:
       context: .
       dockerfile: ./backend/Dockerfile
     depends_on:
       - db
-      - whisper
     ports:
-      - "8000:8000"
+      - "8100:8000"
     volumes:
       - ./uploads:/app/uploads
       - ./backend/app:/app
-    # Aumenta o timeout do wait-for-it para garantir que whisper suba antes da API
-    command: ["/bin/bash", "-c", "./wait-for-it.sh db:5432 --timeout=60 --strict -- ./wait-for-it.sh whisper:9000 --timeout=120 --strict -- uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
+    networks:
+      - influx_default
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
     environment:
@@ -37,14 +38,24 @@ services:
     volumes:
       - ./uploads:/data
       - ./cache:/root/.cache
+    networks:
+      - influx_default
   frontend:
     image: nginx:alpine
+    depends_on:
+      - api
     ports:
-      - "8080:80"
+      - "8083:80"
       - "443:443"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - influx_default
 volumes:
   pgdata:
+
+networks:
+  influx_default:
+    external: false
