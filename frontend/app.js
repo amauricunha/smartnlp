@@ -56,44 +56,92 @@ function setupGlobalSpeechControls() {
   stopBtn.disabled = true;
   speedControl.disabled = true;
 
+  // Verifica se o navegador suporta Speech Synthesis
+  if (!('speechSynthesis' in window)) {
+    console.warn('Speech Synthesis não suportado neste navegador');
+    playPauseBtn.textContent = "❌ Não suportado";
+    return;
+  }
+
   switchLLMBtn.onclick = function () {
     currentLLM = currentLLM === "groq" ? "mistral" : "groq";
     switchLLMBtn.textContent = currentLLM === "groq" ? "🔊 Ouvir Groq" : "🔊 Ouvir Mistral";
-    window.speechSynthesis.cancel(); // Garante que a leitura anterior pare imediatamente
+    window.speechSynthesis.cancel();
     playPauseBtn.textContent = "▶️ Play";
     playPauseBtn.disabled = false;
     stopBtn.disabled = false;
     speedControl.disabled = false;
-    // Opcional: iniciar leitura automaticamente ao trocar LLM
-    // playPauseBtn.click();
   };
 
   playPauseBtn.onclick = function () {
+    console.log("Play/Pause clicado. Estado atual:", {
+      speaking: window.speechSynthesis.speaking,
+      paused: window.speechSynthesis.paused,
+      pending: window.speechSynthesis.pending
+    });
+
     if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
       // Pausar
       window.speechSynthesis.pause();
       playPauseBtn.textContent = "▶️ Play";
+      console.log("Pausado");
     } else if (window.speechSynthesis.paused) {
       // Continuar
       window.speechSynthesis.resume();
       playPauseBtn.textContent = "⏸️ Pause";
+      console.log("Retomado");
     } else {
-      // Sempre cria uma nova utterance ao dar play
+      // Iniciar nova leitura
       const text = cleanTextForSpeech(currentLLM === "groq" ? lastGroqText : lastMistralText);
-      if (!text) return;
-      utterance = new window.SpeechSynthesisUtterance(text);
-      utterance.lang = "pt-BR";
-      utterance.rate = parseFloat(speedControl.value);
-      playPauseBtn.textContent = "⏸️ Pause";
-      playPauseBtn.disabled = false;
-      stopBtn.disabled = false;
-      utterance.onend = () => {
-        playPauseBtn.textContent = "▶️ Play";
-      };
-      utterance.onerror = () => {
-        playPauseBtn.textContent = "▶️ Play";
-      };
-      window.speechSynthesis.speak(utterance);
+      console.log("Texto para leitura:", text.substring(0, 100) + "...");
+      
+      if (!text) {
+        console.warn("Nenhum texto disponível para leitura");
+        return;
+      }
+
+      // Cancela qualquer leitura anterior
+      window.speechSynthesis.cancel();
+      
+      // Aguarda um pouco para garantir que cancelou
+      setTimeout(() => {
+        utterance = new window.SpeechSynthesisUtterance(text);
+        utterance.lang = "pt-BR";
+        utterance.rate = parseFloat(speedControl.value);
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        utterance.onstart = () => {
+          console.log("Leitura iniciada");
+          playPauseBtn.textContent = "⏸️ Pause";
+          playPauseBtn.disabled = false;
+          stopBtn.disabled = false;
+        };
+
+        utterance.onend = () => {
+          console.log("Leitura finalizada");
+          playPauseBtn.textContent = "▶️ Play";
+        };
+
+        utterance.onerror = (event) => {
+          console.error("Erro na leitura:", event);
+          playPauseBtn.textContent = "▶️ Play";
+          alert("Erro na síntese de voz: " + event.error);
+        };
+
+        utterance.onpause = () => {
+          console.log("Leitura pausada");
+          playPauseBtn.textContent = "▶️ Play";
+        };
+
+        utterance.onresume = () => {
+          console.log("Leitura retomada");
+          playPauseBtn.textContent = "⏸️ Pause";
+        };
+
+        console.log("Iniciando síntese de voz...");
+        window.speechSynthesis.speak(utterance);
+      }, 100);
     }
   };
 
