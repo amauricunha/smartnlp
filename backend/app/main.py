@@ -279,3 +279,27 @@ def list_audio_records(skip: int = Query(0, ge=0), limit: int = Query(10, ge=1, 
         return {"total": total, "items": items}
     finally:
         db.close()
+
+# Rota alternativa para compatibilidade com proxy /api/
+@app.get("/api/audio_records/", summary="Lista registros de áudio com paginação (com prefixo /api/)")
+def list_audio_records_api(skip: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=100)):
+    """
+    Rota alternativa para compatibilidade com proxy nginx que mantém o prefixo /api/.
+    """
+    return list_audio_records(skip, limit)
+
+@app.post("/api/avaliacao/", summary="Upload de áudio e avaliação (com prefixo /api/)")
+async def avaliacao_api(
+    id: int = Form(...),
+    area_especialista: str = Form(...),
+    semestre_aluno: str = Form(...),    
+    sa_descricao: str = Form(...), 
+    etapa_descricao: str = Form(...),
+    pratica_descricao: str = Form(...),
+    parametros_descricao: str = Form(...),   
+    file: UploadFile = File(...)
+):
+    """
+    Rota alternativa para compatibilidade com proxy nginx que mantém o prefixo /api/.
+    """
+    return await avaliacao(id, area_especialista, semestre_aluno, sa_descricao, etapa_descricao, pratica_descricao, parametros_descricao, file)
