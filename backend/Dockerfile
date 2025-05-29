@@ -13,7 +13,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 
 COPY . .
-COPY ./backend/app/wait-for-it.sh .
 
 EXPOSE 8000
 
