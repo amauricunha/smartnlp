@@ -31,6 +31,8 @@ services:
       - ./cache:/root/.cache
   frontend:
     image: nginx:alpine
+    depends_on:
+      - api
     ports:
       - "8083:80"
       - "443:443"
