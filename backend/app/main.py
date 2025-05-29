@@ -299,6 +299,94 @@ async def avaliacao_api(
     file: UploadFile = File(...)
 ):
     """
-    Rota alternativa para compatibilidade com proxy nginx que mantém o prefixo /api/.
+    Recebe um arquivo de áudio, a descrição da prática e a situação de aprendizagem, transcreve o audio, envia para a LLMs Groq e Mistral e retorna resposta, salvando em banco de dados.
     """
-    return await avaliacao(id, area_especialista, semestre_aluno, sa_descricao, etapa_descricao, pratica_descricao, parametros_descricao, file)
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Formato de áudio não suportado.")
+
+    unique_name = f"{id}_{uuid4().hex}{ext}"
+    audio_path = os.path.join(UPLOAD_DIR, unique_name)
+    try:
+        with open(audio_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        logging.exception("Erro ao salvar arquivo de áudio")
+        raise HTTPException(status_code=500, detail="Erro ao salvar arquivo de áudio.")
+
+    transcription = transcribe_audio(audio_path)
+    if transcription.startswith("Erro"):
+        logging.error(transcription)
+        raise HTTPException(status_code=500, detail=transcription)
+
+    txt_path = audio_path + ".txt"
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write(transcription)
+
+    prompt_v1 = ("Você é um especialista em " 
+              + area_especialista + 
+              " e vai avaliar a transcrição do audio do aluno que explica o que está fazendo. Deve responder com uma avaliação e sugestões de melhorias, cuidados e pontos de atenção. Considere que o aluno está em um ambiente de aprendizagem e não tem experiência. Também considere que o aluno pode ter dificuldades de comunicação e pode não usar a terminologia correta. Seja gentil e encorajador, mas também honesto e direto. Não use jargões técnicos ou termos complexos. Responda em português. Aluno está realizando essa prática: " 
+              + pratica_descricao + 
+              ". Desta Situação de Aprendizagem: " 
+              + sa_descricao)
+    
+    prompt_v2 = (
+        "Você é um Tutor de Inteligência Artificial especializado em práticas de laboratório de " + area_especialista + " para estudantes de educação profissional e superior. "
+        "Sua tarefa é analisar a transcrição de áudio de um aluno que descreve o que está fazendo em uma atividade prática. "
+        "Com base na transcrição, forneça um feedback pedagógico construtivo para ajudar o aluno a melhorar seu entendimento e execução da prática. "
+        "Inclua uma avaliação geral, sugestões de melhoria, pontos de atenção importantes (especialmente relacionados à segurança) e reconheça os acertos. "
+        "Lembre-se que o aluno está em um ambiente de aprendizado, no semestre " + semestre_aluno + " de contato com o laboratório."
+        "Considere que ele está adquirindo experiência e pode ter dificuldades de comunicação, usando terminologia incorreta ou incompleta."
+        "Seja gentil, paciente e encorajador, mas também honesto e direto em suas observações. "
+        "Use uma linguagem clara e simples, evitando jargões técnicos complexos, como se estivesse conversando diretamente com o aluno no laboratório."
+        "Sua resposta deve ser em português."
+        "O aluno está realizando a seguinte prática: "+ pratica_descricao +", que faz parte da Situação de Aprendizagem: "+ sa_descricao +"."
+        "Foque em avaliar se a descrição do aluno reflete um bom entendimento dos passos, dos parâmetros importantes como  " + parametros_descricao + " , dos cuidados de segurança  e da finalidade da etapa que está realizando."
+        "Não avalie a qualidade da atividade em si, apenas a descrição verbal do aluno sobre suas ações e intenções."
+    )
+    prompt = (
+        "Você é um Tutor IA de laboratório de " + area_especialista + " para estudantes (profissional/superior). "
+        "Analise a transcrição de áudio de um aluno explicando sua prática. "
+        "Forneça feedback pedagógico construtivo (avaliação, sugestões, pontos de atenção - **segurança**!, acertos). "
+        "Considere que é um aluno em aprendizado no semestre(" + semestre_aluno + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
+        "Seja gentil, paciente, encorajador, mas direto. Use linguagem simples, sem jargões, como em conversa no lab. "
+        "Resposta em português. "
+        "Prática em Execução: '" + pratica_descricao + "', da Etapa: '" + etapa_descricao + "', da Situação de Aprendizagem: '" + sa_descricao + "'. "
+        "Avalie o entendimento da descrição sobre passos, parâmetros importantes (" + parametros_descricao + "), **cuidados de segurança**, e objetivo da etapa. "
+        "Não avalie a qualidade física da prática, apenas a explicação verbal."
+    )
+
+    llm_response_mistral = call_llm_mistral(transcription, prompt)
+    llm_response_groq = call_llm_groq(transcription, prompt)
+
+    if llm_response_mistral.startswith("Erro"):
+        logging.error(llm_response_mistral)
+        raise HTTPException(status_code=500, detail=llm_response_mistral)
+
+    if llm_response_groq.startswith("Erro"):
+        logging.error(llm_response_groq)
+        raise HTTPException(status_code=500, detail=llm_response_groq)
+
+    try:
+        create_or_update_audio_record(
+            id=id,
+            audio_path=audio_path,            
+            prompt=prompt,
+            transcription=transcription,
+            llm_groq=llm_response_groq,
+            llm_mistral=llm_response_mistral
+        )
+    except Exception as e:
+        logging.exception("Erro ao salvar no banco de dados")
+        raise HTTPException(status_code=500, detail="Erro ao salvar no banco de dados.")
+
+    return JSONResponse(
+        content={
+            "id": id,
+            "audio_path": audio_path,
+            "prompt": prompt,
+            "transcription": transcription,
+            "llm_response_groq": llm_response_groq,
+            "llm_response_mistral": llm_response_mistral
+        }
+    )

@@ -2,7 +2,6 @@ import os
 import requests
 import logging
 import subprocess
-import tempfile
 
 WHISPER_API_URL = os.getenv("WHISPER_API_URL", "http://whisper:9000/asr")
 
