@@ -42,13 +42,13 @@ def healthcheck():
 @app.post("/avaliacao/", summary="Upload de áudio e avaliação das LLMs Groq e Mistral")
 async def avaliacao(
     id: int = Form(...),
-    area_especialista: str = Form(...),
-    semestre_aluno: str = Form(...),    
+    area_especialista: str = Form(...),#nome da SA
+    turma: str = Form(...),  #Nome da Turma  
     sa_descricao: str = Form(...), 
     etapa_descricao: str = Form(...),
     pratica_descricao: str = Form(...),
-    parametros_descricao: str = Form(...),   
-    file: UploadFile = File(...)
+    parametros_descricao: str = Form(...),  #nome dos gabartos que estão em tela
+    file: UploadFile = File(...) #arquivos endereço que já está sendo gravado.
 ):
     """
     Recebe um arquivo de áudio, a descrição da prática e a situação de aprendizagem, transcreve o audio, envia para a LLMs Groq e Mistral e retorna resposta, salvando em banco de dados.
@@ -87,7 +87,7 @@ async def avaliacao(
         "Sua tarefa é analisar a transcrição de áudio de um aluno que descreve o que está fazendo em uma atividade prática. "
         "Com base na transcrição, forneça um feedback pedagógico construtivo para ajudar o aluno a melhorar seu entendimento e execução da prática. "
         "Inclua uma avaliação geral, sugestões de melhoria, pontos de atenção importantes (especialmente relacionados à segurança) e reconheça os acertos. "
-        "Lembre-se que o aluno está em um ambiente de aprendizado, no semestre " + semestre_aluno + " de contato com o laboratório."
+        "Lembre-se que o aluno está em um ambiente de aprendizado, na turma " + turma + " de contato com o laboratório."
         "Considere que ele está adquirindo experiência e pode ter dificuldades de comunicação, usando terminologia incorreta ou incompleta."
         "Seja gentil, paciente e encorajador, mas também honesto e direto em suas observações. "
         "Use uma linguagem clara e simples, evitando jargões técnicos complexos, como se estivesse conversando diretamente com o aluno no laboratório."
@@ -100,7 +100,7 @@ async def avaliacao(
         "Você é um Tutor IA de laboratório de " + area_especialista + " para estudantes (profissional/superior). "
         "Analise a transcrição de áudio de um aluno explicando sua prática. "
         "Forneça feedback pedagógico construtivo (avaliação, sugestões, pontos de atenção - **segurança**!, acertos). "
-        "Considere que é um aluno em aprendizado no semestre(" + semestre_aluno + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
+        "Considere que é um aluno em aprendizado na turma(" + turma + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
         "Seja gentil, paciente, encorajador, mas direto. Use linguagem simples, sem jargões, como em conversa no lab. "
         "Resposta em português. "
         "Prática em Execução: '" + pratica_descricao + "', da Etapa: '" + etapa_descricao + "', da Situação de Aprendizagem: '" + sa_descricao + "'. "
@@ -179,7 +179,7 @@ async def transcribe_audio_endpoint(file: UploadFile = File(...)):
 @app.post("/llm-groq/", summary="Recebe Descrição da SA, Descrição da Pratica e Transcriçaõ do Audio do Aluno em texto e retorna resposta da LLM Groq")
 async def llm_endpoint(
     area_especialista: str = Form(...),
-    semestre_aluno: str = Form(...),
+    turma: str = Form(...),
     sa_descricao: str = Form(...),
     etapa_descricao: str = Form(...),
     pratica_descricao: str = Form(...),
@@ -192,7 +192,7 @@ async def llm_endpoint(
         "Você é um Tutor IA de laboratório de " + area_especialista + " para estudantes (profissional/superior). "
         "Analise a transcrição de áudio de um aluno explicando sua prática. "
         "Forneça feedback pedagógico construtivo (avaliação, sugestões, pontos de atenção - **segurança**!, acertos). "
-        "Considere que é um aluno em aprendizado no semestre(" + semestre_aluno + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
+        "Considere que é um aluno em aprendizado na turma(" + turma + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
         "Seja gentil, paciente, encorajador, mas direto. Use linguagem simples, sem jargões, como em conversa no lab. "
         "Resposta em português. "
         "Prática em Execução: '" + pratica_descricao + "', da Etapa: '" + etapa_descricao + "', da Situação de Aprendizagem: '" + sa_descricao + "'. "
@@ -214,7 +214,7 @@ async def llm_endpoint(
 @app.post("/llm-mistral/", summary="Recebe Descrição da SA, Descrição da Pratica e Transcriçaõ do Audio do Aluno em texto e retorna resposta da LLM Mistral")
 async def llm_mistral_endpoint(
     area_especialista: str = Form(...),
-    semestre_aluno: str = Form(...),
+    turma: str = Form(...),
     sa_descricao: str = Form(...),
     etapa_descricao: str = Form(...),
     pratica_descricao: str = Form(...),
@@ -227,7 +227,7 @@ async def llm_mistral_endpoint(
         "Você é um Tutor IA de laboratório de " + area_especialista + " para estudantes (profissional/superior). "
         "Analise a transcrição de áudio de um aluno explicando sua prática. "
         "Forneça feedback pedagógico construtivo (avaliação, sugestões, pontos de atenção - **segurança**!, acertos). "
-        "Considere que é um aluno em aprendizado no semestre(" + semestre_aluno + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
+        "Considere que é um aluno em aprendizado na turma(" + turma + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
         "Seja gentil, paciente, encorajador, mas direto. Use linguagem simples, sem jargões, como em conversa no lab. "
         "Resposta em português. "
         "Prática em Execução: '" + pratica_descricao + "', da Etapa: '" + etapa_descricao + "', da Situação de Aprendizagem: '" + sa_descricao + "'. "
@@ -291,7 +291,7 @@ def list_audio_records_api(skip: int = Query(0, ge=0), limit: int = Query(10, ge
 async def avaliacao_api(
     id: int = Form(...),
     area_especialista: str = Form(...),
-    semestre_aluno: str = Form(...),    
+    turma: str = Form(...),    
     sa_descricao: str = Form(...), 
     etapa_descricao: str = Form(...),
     pratica_descricao: str = Form(...),
@@ -335,7 +335,7 @@ async def avaliacao_api(
         "Sua tarefa é analisar a transcrição de áudio de um aluno que descreve o que está fazendo em uma atividade prática. "
         "Com base na transcrição, forneça um feedback pedagógico construtivo para ajudar o aluno a melhorar seu entendimento e execução da prática. "
         "Inclua uma avaliação geral, sugestões de melhoria, pontos de atenção importantes (especialmente relacionados à segurança) e reconheça os acertos. "
-        "Lembre-se que o aluno está em um ambiente de aprendizado, no semestre " + semestre_aluno + " de contato com o laboratório."
+        "Lembre-se que o aluno está em um ambiente de aprendizado, no turma " + turma + " de contato com o laboratório."
         "Considere que ele está adquirindo experiência e pode ter dificuldades de comunicação, usando terminologia incorreta ou incompleta."
         "Seja gentil, paciente e encorajador, mas também honesto e direto em suas observações. "
         "Use uma linguagem clara e simples, evitando jargões técnicos complexos, como se estivesse conversando diretamente com o aluno no laboratório."
@@ -348,7 +348,7 @@ async def avaliacao_api(
         "Você é um Tutor IA de laboratório de " + area_especialista + " para estudantes (profissional/superior). "
         "Analise a transcrição de áudio de um aluno explicando sua prática. "
         "Forneça feedback pedagógico construtivo (avaliação, sugestões, pontos de atenção - **segurança**!, acertos). "
-        "Considere que é um aluno em aprendizado no semestre(" + semestre_aluno + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
+        "Considere que é um aluno em aprendizado na turma(" + turma + "), adquirindo experiência, com possíveis dificuldades de comunicação/terminologia. "
         "Seja gentil, paciente, encorajador, mas direto. Use linguagem simples, sem jargões, como em conversa no lab. "
         "Resposta em português. "
         "Prática em Execução: '" + pratica_descricao + "', da Etapa: '" + etapa_descricao + "', da Situação de Aprendizagem: '" + sa_descricao + "'. "
