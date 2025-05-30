@@ -13,7 +13,7 @@ deploy() {
   echo "Iniciando o deploy..."
 
     # Faz pull da main via token Fine-grained
-    git pull --no-rebase https://github.com/amauricunha/smartnlp.git
+    git pull https://github.com/amauricunha/smartnlp.git
 
   if [ $? -eq 0 ]; then
     echo "Atualização do repositório feita com sucesso."
